@@ -1,6 +1,6 @@
-r"""Causal Normalizing FLow"""
+r"""Causal Normalizing Flow class."""
 
-__all__ = ["CausalFlow"]
+__all__ = ['CausalFlow']
 
 from .distributions import CausalNormalizingFlow
 from torch import Tensor

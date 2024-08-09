@@ -1,3 +1,5 @@
+r"""Helper class to create synthetic SCMs and pre-defined instances of SCMs ready to use."""
+
 import torch
 import torch.nn.functional as F
 
