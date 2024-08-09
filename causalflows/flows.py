@@ -1,15 +1,14 @@
+from math import pi
 from typing import (
     Optional,
     Dict,
     Any,
 )
-from math import pi
 
 import torch
 from torch import BoolTensor, LongTensor, Size
 from zuko.distributions import DiagNormal, BoxUniform
 from zuko.flows import (
-    Flow,
     MaskedAutoregressiveTransform,
     UnconditionalDistribution,
     LazyInverse,
@@ -19,8 +18,10 @@ from zuko.flows.neural import MNN, UMNN
 from zuko.flows.spline import CircularRQSTransform
 from zuko.transforms import MonotonicRQSTransform, SoftclipTransform
 
+from .core import CausalFlow
 
-class CausalMAF(Flow):
+
+class CausalMAF(CausalFlow):
     r"""Creates a causal flow using a masked autoregressive flow as base the base model (Causal MAF).
 
     See also:
@@ -182,7 +183,7 @@ class CausalNCSF(CausalMAF):
         )
 
 
-class CausalNAF(Flow):
+class CausalNAF(CausalFlow):
     r"""Creates a causal flow using a neural autoregressive flow (NAF) as base model.
 
     See also:
@@ -247,7 +248,7 @@ class CausalNAF(Flow):
         super().__init__(transforms, base)
 
 
-class CausalUNAF(Flow):
+class CausalUNAF(CausalFlow):
     r"""Creates a causal flow using an unconstrained neural autoregressive flow (UNAF) as base model.
 
     See also:
