@@ -91,7 +91,7 @@ class CausalNormalizingFlow(NormalizingFlow):  # TODO Document new methods bette
         except Exception as e:
             raise e
         finally:
-            self._stop_intervention()
+            self._stop_intervention(index)
 
     def _start_intervention(self, index: LongTensor, value: Tensor) -> NormalizingFlow:
         if not torch.is_tensor(index):
@@ -107,7 +107,7 @@ class CausalNormalizingFlow(NormalizingFlow):  # TODO Document new methods bette
 
         return self
 
-    def _stop_intervention(self):
+    def _stop_intervention(self, index: LongTensor) -> None:
         self.indexes.pop()
         self.values.pop()
         if len(self.indexes) == 0:
