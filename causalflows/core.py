@@ -1,11 +1,10 @@
-import torch
+r"""Causal Normalizing FLow"""
+
+__all__ = ["CausalFlow"]
 
 from .distributions import CausalNormalizingFlow
 from torch import Tensor
-from typing import Sequence, Union
-from zuko.flows import Flow, LazyDistribution, LazyTransform
-
-__all__ = ["CausalFlow"]
+from zuko.flows import Flow
 
 
 class CausalFlow(Flow):
@@ -19,15 +18,6 @@ class CausalFlow(Flow):
         transform: A lazy transformation or sequence of lazy transformations.
         base: A lazy distribution.
     """
-
-    def __init__(
-        self,
-        transform: Union[LazyTransform, Sequence[LazyTransform]],
-        base: LazyDistribution,
-    ):
-        super().__init__(transform, base)
-        self.register_buffer("intervention_index", torch.empty([]))
-        self.register_buffer("intervention_value", torch.empty([]))
 
     def forward(self, c: Tensor = None) -> CausalNormalizingFlow:
         r"""
