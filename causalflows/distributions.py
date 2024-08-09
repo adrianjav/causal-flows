@@ -1,18 +1,18 @@
-from contextlib import contextmanager
-from typing import List
-
 import torch
-from torch import LongTensor, Tensor, Size
-from torch.distributions import Transform, Distribution
+
+from contextlib import contextmanager
+from torch import LongTensor, Size, Tensor
+from torch.distributions import Distribution, Transform
+from typing import List
 from zuko.distributions import NormalizingFlow
 
 __all__ = ["CausalNormalizingFlow"]
 
+empty_size = Size()
+
 
 class IntervenedTransform(Transform):
-    def __init__(
-        self, transform: Transform, index: List[LongTensor], value: List[Tensor]
-    ):
+    def __init__(self, transform: Transform, index: List[LongTensor], value: List[Tensor]):
         super().__init__()
         self.transform = transform
         self.index: List[LongTensor] = index
@@ -34,7 +34,7 @@ class IntervenedTransform(Transform):
         return self.transform.__getattribute__(item)
 
 
-class CausalNormalizingFlow(NormalizingFlow):
+class CausalNormalizingFlow(NormalizingFlow):  # TODO Document new methods better
     r"""Class that extends :class:`~zuko.distributions.NormalizingFlow` with
     methods to compute interventions and counterfactuals.
 
@@ -56,7 +56,7 @@ class CausalNormalizingFlow(NormalizingFlow):
         base: A base distribution :math:`p(Z)`.
 
     Example:
-        >>> d = NormalizingFlow(ExpTransform(), Gamma(2.0, 1.0))
+        >>> d = CausalNormalizingFlow(ExpTransform(), Gamma(2.0, 1.0))
         >>> d.sample()
         tensor(1.5157)
     """
@@ -103,9 +103,7 @@ class CausalNormalizingFlow(NormalizingFlow):
         self.indexes.append(index)
         self.values.append(value)
 
-        self.transform = IntervenedTransform(
-            self.og_transform, self.indexes, self.values
-        )
+        self.transform = IntervenedTransform(self.og_transform, self.indexes, self.values)
 
         return self
 
@@ -116,7 +114,7 @@ class CausalNormalizingFlow(NormalizingFlow):
             self.transform = self.og_transform
 
     def sample_interventional(
-        self, index: LongTensor, value: Tensor, sample_shape: Size = Size()
+        self, index: LongTensor, value: Tensor, sample_shape: Size = empty_size
     ) -> Tensor:
         r"""
         Samples from the interventional distribution.

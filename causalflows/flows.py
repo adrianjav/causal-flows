@@ -1,24 +1,23 @@
-from math import pi
-from typing import (
-    Optional,
-    Dict,
-    Any,
-)
-
 import torch
+
+from .core import CausalFlow
+from math import pi
 from torch import BoolTensor, LongTensor, Size
-from zuko.distributions import DiagNormal, BoxUniform
+from typing import (
+    Any,
+    Dict,
+    Optional,
+)
+from zuko.distributions import BoxUniform, DiagNormal
 from zuko.flows import (
+    LazyInverse,
     MaskedAutoregressiveTransform,
     UnconditionalDistribution,
-    LazyInverse,
     UnconditionalTransform,
 )
 from zuko.flows.neural import MNN, UMNN
 from zuko.flows.spline import CircularRQSTransform
 from zuko.transforms import MonotonicRQSTransform, SoftclipTransform
-
-from .core import CausalFlow
 
 
 class CausalMAF(CausalFlow):
@@ -60,9 +59,9 @@ class CausalMAF(CausalFlow):
         >>> c = torch.randn(4)
         >>> x = flow(c).sample()
         >>> x
-        tensor([-0.5347, -0.1285,  0.8601])
+        tensor([-2.3677, -0.0753, -0.9235])
         >>> flow(c).log_prob(x)
-        tensor(-3.3751, grad_fn=<AddBackward0>)
+        tensor(-5.6385, grad_fn=<AddBackward0>)
     """
 
     def __init__(

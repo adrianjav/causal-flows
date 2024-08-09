@@ -1,10 +1,9 @@
-from typing import Union, Sequence
-
 import torch
-from torch import Tensor
-from zuko.flows import LazyTransform, Flow, LazyDistribution
 
 from .distributions import CausalNormalizingFlow
+from torch import Tensor
+from typing import Sequence, Union
+from zuko.flows import Flow, LazyDistribution, LazyTransform
 
 __all__ = ["CausalFlow"]
 

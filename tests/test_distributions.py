@@ -1,5 +1,6 @@
-import zuko
 import torch
+import zuko
+
 from causalflows.distributions import CausalNormalizingFlow
 
 
