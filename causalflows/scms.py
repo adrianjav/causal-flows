@@ -4,10 +4,9 @@ import torch.nn.functional as F
 from .distributions import CausalNormalizingFlow
 from math import sqrt
 from torch import BoolTensor, LongTensor, Tensor
-from torch.distributions import Distribution, Transform, constraints
+from torch.distributions import Distribution, Independent, Normal, Transform, Uniform, constraints
 from typing import Union
-from zuko.distributions import BoxUniform, DiagNormal, NormalizingFlow
-from zuko.flows import UnconditionalDistribution
+from zuko.distributions import NormalizingFlow
 
 
 class CausalEquations(Transform):
@@ -84,38 +83,35 @@ class CausalEquations(Transform):
 class SCM(CausalNormalizingFlow):
     def __init__(self, equations: CausalEquations, base: Union[str, Distribution]):
         if type(base) is str:
-            features = self.adjacency.shape[0]
+            features = equations.adjacency.shape[0]
             if base == 'std-gaussian':
-                base = UnconditionalDistribution(
-                    DiagNormal,
-                    torch.zeros(features),
-                    torch.ones(features),
-                    buffer=True,
+                base = Independent(
+                    Normal(torch.zeros(features), torch.ones(features)),
+                    reinterpreted_batch_ndims=1,
                 )
             elif base == 'std-normal':
-                self.base = UnconditionalDistribution(
-                    BoxUniform,
-                    torch.full((features,), -1.0),
-                    torch.full((features,), 1.0),
-                    buffer=True,
+                base = Independent(
+                    Uniform(torch.zeros(features), torch.ones(features)),
+                    reinterpreted_batch_ndims=1,
                 )
             else:
                 raise ValueError(f'Unknown base distribution {base}.')
 
-        super().__init__(equations, base)
+        self.equations = equations
+        super().__init__(equations.inv, base)
 
     @property
     def adjacency(self) -> BoolTensor:
-        adj = self.transform.adjacency
+        adj = self.equations.adjacency
         assert (adj.shape[0] == adj.shape[1]) and (len(adj.shape) == 2)
         return adj
 
     def _start_intervention(self, index: LongTensor, value: Tensor) -> NormalizingFlow:
-        self.transform.add_intervention(index, value)
+        self.equations.add_intervention(index, value)
         return self
 
     def _stop_intervention(self, index: LongTensor) -> None:
-        self.transform.remove_intervention(index)
+        self.equations.remove_intervention(index)
 
 
 ####
@@ -167,9 +163,9 @@ class Triangle(CausalEquations):
     @property
     def adjacency(self):
         return torch.tensor((
-            (0, 0, 0),
             (1, 0, 0),
             (1, 1, 0),
+            (1, 1, 1),
         )).bool()
 
 
@@ -213,17 +209,17 @@ class Simpson(CausalEquations):
     def adjacency(self):
         if self.eq_type == 'non-linear':
             return torch.tensor((
-                (0, 0, 0, 0),
                 (1, 0, 0, 0),
                 (1, 1, 0, 0),
-                (0, 0, 1, 0),
+                (1, 1, 1, 0),
+                (0, 0, 1, 1),
             )).bool()
         elif self.eq_type == 'sym-prod':
             return torch.tensor((
-                (0, 0, 0, 0),
                 (1, 0, 0, 0),
                 (1, 1, 0, 0),
-                (1, 0, 0, 0),
+                (1, 1, 1, 0),
+                (1, 0, 0, 1),
             )).bool()
 
         raise ValueError(f'Equation type {self.eq_type} not supported.')
@@ -284,15 +280,15 @@ class LargeBackdoor(CausalEquations):
     @property
     def adjacency(self):
         return torch.tensor([
-            (0, 0, 0, 0, 0, 0, 0, 0, 0),
             (1, 0, 0, 0, 0, 0, 0, 0, 0),
-            (1, 0, 0, 0, 0, 0, 0, 0, 0),
-            (0, 1, 0, 0, 0, 0, 0, 0, 0),
-            (0, 0, 1, 0, 0, 0, 0, 0, 0),
-            (0, 0, 0, 1, 0, 0, 0, 0, 0),
-            (0, 0, 0, 0, 1, 0, 0, 0, 0),
-            (0, 0, 0, 0, 0, 1, 0, 0, 0),
-            (0, 0, 0, 0, 0, 0, 1, 1, 0),
+            (1, 1, 0, 0, 0, 0, 0, 0, 0),
+            (1, 0, 1, 0, 0, 0, 0, 0, 0),
+            (0, 1, 0, 1, 0, 0, 0, 0, 0),
+            (0, 0, 1, 0, 1, 0, 0, 0, 0),
+            (0, 0, 0, 1, 0, 1, 0, 0, 0),
+            (0, 0, 0, 0, 1, 0, 1, 0, 0),
+            (0, 0, 0, 0, 0, 1, 0, 1, 0),
+            (0, 0, 0, 0, 0, 0, 1, 1, 1),
         ]).bool()
 
 
@@ -333,10 +329,10 @@ class Fork(CausalEquations):
     @property
     def adjacency(self):
         return torch.tensor((
-            (0, 0, 0, 0),
-            (0, 0, 0, 0),
-            (1, 1, 0, 0),
-            (0, 0, 1, 0),
+            (1, 0, 0, 0),
+            (0, 1, 0, 0),
+            (1, 1, 1, 0),
+            (0, 0, 1, 1),
         )).bool()
 
 
@@ -364,10 +360,10 @@ class Diamond(CausalEquations):
     @property
     def adjacency(self):
         return torch.tensor((
-            (0, 0, 0, 0),
             (1, 0, 0, 0),
             (1, 1, 0, 0),
-            (0, 1, 1, 0),
+            (1, 1, 1, 0),
+            (0, 1, 1, 1),
         )).bool()
 
 
@@ -393,9 +389,9 @@ class Collider(CausalEquations):
     @property
     def adjacency(self):
         return torch.tensor((
-            (0, 0, 0),
-            (0, 0, 0),
-            (1, 1, 0),
+            (1, 0, 0),
+            (0, 1, 0),
+            (1, 1, 1),
         )).bool()
 
 
@@ -454,9 +450,9 @@ class Chain3(CausalEquations):
     @property
     def adjacency(self):
         return torch.tensor((
-            (0, 0, 0),
             (1, 0, 0),
-            (0, 1, 0),
+            (1, 1, 0),
+            (0, 1, 1),
         )).bool()
 
 
@@ -484,10 +480,10 @@ class Chain4(CausalEquations):
     @property
     def adjacency(self):
         return torch.tensor((
-            (0, 0, 0, 0),
             (1, 0, 0, 0),
-            (0, 1, 0, 0),
-            (0, 0, 1, 0),
+            (1, 1, 0, 0),
+            (0, 1, 1, 0),
+            (0, 0, 1, 1),
         )).bool()
 
 
@@ -517,9 +513,9 @@ class Chain5(CausalEquations):
     @property
     def adjacency(self):
         return torch.tensor((
-            (0, 0, 0, 0, 0),
             (1, 0, 0, 0, 0),
-            (0, 1, 0, 0, 0),
-            (0, 0, 1, 0, 0),
-            (0, 0, 0, 1, 0),
+            (1, 1, 0, 0, 0),
+            (0, 1, 1, 0, 0),
+            (0, 0, 1, 1, 0),
+            (0, 0, 0, 1, 1),
         )).bool()
