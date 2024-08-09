@@ -13,11 +13,10 @@ from zuko.flows import (
     LazyInverse,
     MaskedAutoregressiveTransform,
     UnconditionalDistribution,
-    UnconditionalTransform,
 )
 from zuko.flows.neural import MNN, UMNN
 from zuko.flows.spline import CircularRQSTransform
-from zuko.transforms import MonotonicRQSTransform, SoftclipTransform
+from zuko.transforms import MonotonicRQSTransform
 
 
 class CausalMAF(CausalFlow):
@@ -301,9 +300,6 @@ class CausalUNAF(CausalFlow):
                 **kwargs,
             )
         )
-
-        for i in reversed(range(1, len(transforms))):
-            transforms.insert(i, UnconditionalTransform(SoftclipTransform, bound=11.0))
 
         base = UnconditionalDistribution(
             DiagNormal,
