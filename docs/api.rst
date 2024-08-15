@@ -9,3 +9,4 @@ API
 
    causalflows.distributions
    causalflows.flows
+   causalflows.scms

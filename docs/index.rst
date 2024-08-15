@@ -26,7 +26,7 @@ Alternatively, you can install it directly from the repository.
 Getting started
 ---------------
 
-Normalizing flows are provided in the :mod:`causalflows.flows` module. To build one, supply the number of sample and
+Normalizing flows are provided in the :mod:`~causalflows.flows` module. To build one, supply the number of sample and
 context features as well as the transformations' hyperparameters. Then, feeding a context :math:`c` to the flow returns
 a conditional distribution :math:`p(x | c)` which can be evaluated and sampled from.
 
@@ -52,12 +52,14 @@ a conditional distribution :math:`p(x | c)` which can be evaluated and sampled f
     # Sample 64 points x ~ p(x | c*)
     x = flow(c_star).sample((64,))
 
-Alternatively, flows can be built as custom :class:`causalflows.core.CausalFlow` objects.
+Alternatively, flows can be built as custom :class:`~causalflows.core.CausalFlow` objects.
+As it can be appreciated in the snippet below, the library can be easily combined with custom flows
+from the `Zuko <https://github.com/probabilists/zuko>`_ library.
 
 .. code-block:: python
 
     from causalflows.flows import CausalFlow
-    from zuko.flows import Flow, UnconditionalDistribution, UnconditionalTransform
+    from zuko.flows import UnconditionalDistribution, UnconditionalTransform
     from zuko.flows.autoregressive import MaskedAutoregressiveTransform
     from zuko.distributions import DiagNormal
     from zuko.transforms import RotationTransform
@@ -80,6 +82,9 @@ For more information, check out the :doc:`tutorials <../tutorials>` or the :doc:
 
 References
 ----------
+
+| Causal normalizing flows: from theory to practice (Javaloy et al., 2024)
+| https://arxiv.org/abs/2306.05415
 
 | NICE: Non-linear Independent Components Estimation (Dinh et al., 2014)
 | https://arxiv.org/abs/1410.8516
@@ -109,6 +114,4 @@ References
     :hidden:
     :maxdepth: 1
 
-    Contributing <https://github.com/probabilists/zuko/blob/master/CONTRIBUTING.md>
-    Changelog <https://github.com/probabilists/zuko/releases>
-    License <https://github.com/probabilists/zuko/blob/master/LICENSE>
+    License <https://github.com/adrianjav/causal-flows/blob/master/LICENSE>
