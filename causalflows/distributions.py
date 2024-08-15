@@ -35,12 +35,21 @@ class IntervenedTransform(Transform):
         return self.transform.__getattribute__(item)
 
 
-class CausalNormalizingFlow(NormalizingFlow):  # TODO Document new methods better
-    r"""Class that extends :class:`~zuko.distributions.NormalizingFlow` with
+class CausalNormalizingFlow(NormalizingFlow):
+    r"""Class that extends :class:`zuko.distributions.NormalizingFlow` with
     methods to compute interventions and counterfactuals.
 
+    Arguments:
+        transform: A transformation :math:`f`.
+        base: A base distribution :math:`p(Z)`.
+
     See also:
-        :class:`~zuko.distributions.NormalizingFlow`
+        - :class:`~zuko.distributions.NormalizingFlow` The equivalent non-causal counterpart from Zuko.
+
+    Example:
+        >>> d = CausalNormalizingFlow(ExpTransform(), Gamma(2.0, 1.0))
+        >>> d.sample()
+        tensor(1.5157)
 
     References:
         | A Family of Non-parametric Density Estimation Algorithms (Tabak et al., 2013)
@@ -52,14 +61,6 @@ class CausalNormalizingFlow(NormalizingFlow):  # TODO Document new methods bette
         | Normalizing Flows for Probabilistic Modeling and Inference (Papamakarios et al., 2021)
         | https://arxiv.org/abs/1912.02762
 
-    Arguments:
-        transform: A transformation :math:`f`.
-        base: A base distribution :math:`p(Z)`.
-
-    Example:
-        >>> d = CausalNormalizingFlow(ExpTransform(), Gamma(2.0, 1.0))
-        >>> d.sample()
-        tensor(1.5157)
     """
 
     def __init__(
@@ -84,8 +85,20 @@ class CausalNormalizingFlow(NormalizingFlow):  # TODO Document new methods bette
             value: Values of the intervened variables.
 
         Returns:
-            An :class:`~torch.distributions.Distribution` representing the
+            A :class:`CausalNormalizingFlow` representing the
             interventional distribution.
+
+        Warning:
+            Nested interventions have not yet been tested.
+
+        Example:
+            >>> nflow = CausalNormalizingFlow(ExpTransform(), Gamma(2.0, torch.ones((1,))))
+            >>> with nflow.intervene(index=0, value=0.5) as int_nflow:
+            ...   x = int_nflow.sample((3,))
+            >>> x
+            tensor([[0.5000],
+                    [0.5000],
+                    [0.5000]])
         """
         try:
             yield self._start_intervention(index, value)
@@ -118,7 +131,7 @@ class CausalNormalizingFlow(NormalizingFlow):  # TODO Document new methods bette
         self, index: LongTensor, value: Tensor, sample_shape: Size = empty_size
     ) -> Tensor:
         r"""
-        Samples from the interventional distribution.
+        Helper method to sample from an interventional distribution.
 
         Arguments:
             index: Index tensor of the intervened variables.
@@ -126,7 +139,15 @@ class CausalNormalizingFlow(NormalizingFlow):  # TODO Document new methods bette
             sample_shape: Batch shape of the samples.
 
         Returns:
-             The interventional samples.
+             The intervened samples.
+
+        Example:
+            >>> nflow = CausalNormalizingFlow(ExpTransform(), Gamma(2.0, torch.ones((2,))))
+            >>> x = nflow.sample_interventional(index=1, value=0.5, sample_shape=(3,))
+            >>> x
+            tensor([[ 1.5157,  0.5000],
+                    [-0.4748,  0.5000],
+                    [-0.1055,  0.5000]])
         """
         with self.intervene(index, value) as dist:
             return dist.sample(sample_shape)
@@ -138,7 +159,7 @@ class CausalNormalizingFlow(NormalizingFlow):  # TODO Document new methods bette
         value: Tensor,
     ) -> Tensor:
         r"""
-        Samples from the counterfactual distribution.
+        Helper method to sample from a counterfactual distribution.
 
         Arguments:
             factual: The factual sample.
@@ -146,7 +167,20 @@ class CausalNormalizingFlow(NormalizingFlow):  # TODO Document new methods bette
             value: Values of the intervened variables.
 
         Returns:
-             The counterfactual samples.
+             The counterfactual samples, with identical shape as :attr:`factual`.
+
+        Example:
+            >>> nflow = CausalNormalizingFlow(ExpTransform(), Gamma(2.0, torch.ones((2,))))
+            >>> factual = nflow.sample((3,))
+            >>> factual
+            tensor([[ 1.5157,  0.2745],
+                    [-0.4748, -0.8333],
+                    [-0.1055,  0.1809]])
+            >>> cfactual = nflow.compute_counterfactual(factual, index=0, value=0.5)
+            >>> cfactual
+            tensor([[ 0.5000,  0.2745],
+                    [ 0.5000, -0.8333],
+                    [ 0.5000,  0.1809]])
         """
         u = self.transform(factual)
 

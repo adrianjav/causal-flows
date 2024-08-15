@@ -23,37 +23,31 @@ from zuko.transforms import MonotonicRQSTransform
 
 
 class CausalMAF(CausalFlow):
-    r"""Creates a causal flow using a masked autoregressive flow as base the base model (Causal MAF).
-
-    See also:
-        :class:`zuko.flows.autoregressive.MAF`
-
-    References:
-        | Masked Autoregressive Flow for Density Estimation (Papamakarios et al., 2017)
-        | https://arxiv.org/abs/1705.07057
+    r"""Creates a causal flow using a masked autoregressive flow (MAF) as base model.
 
     Arguments:
         features: The number of features.
         context: The number of context features.
         order: The causal order to follow by the flow. If used, then `adjacency` must be :py:`None`.
-        adjacency: The causal graph to follow by the flow. If used, then `order` must be :py:`None`.
-        kwargs: Keyword arguments passed to :class:`zuko.flows.autoregressive.MaskedAutoregressiveTransform`.
+        adjacency: The causal graph to pass to the flow. If used, then `order` must be :py:`None`.
+        kwargs: Keyword arguments passed to :class:`~zuko.flows.autoregressive.MaskedAutoregressiveTransform`.
+
+    See also:
+        - :class:`~zuko.flows.autoregressive.MAF` The equivalent non-causal counterpart from Zuko.
 
     Example:
         >>> flow = CausalMAF(3, 4, order=torch.arange(3))
         >>> flow
         CausalMAF(
-          (transform): LazyInverse(
-            (transform): MaskedAutoregressiveTransform(
-              (base): MonotonicAffineTransform()
-              (order): [0, 1, 2]
-              (hyper): MaskedMLP(
-                (0): MaskedLinear(in_features=7, out_features=64, bias=True)
-                (1): ReLU()
-                (2): MaskedLinear(in_features=64, out_features=64, bias=True)
-                (3): ReLU()
-                (4): MaskedLinear(in_features=64, out_features=6, bias=True)
-              )
+          (transform): MaskedAutoregressiveTransform(
+            (base): MonotonicAffineTransform()
+            (order): [0, 1, 2]
+            (hyper): MaskedMLP(
+              (0): MaskedLinear(in_features=7, out_features=64, bias=True)
+              (1): ReLU()
+              (2): MaskedLinear(in_features=64, out_features=64, bias=True)
+              (3): ReLU()
+              (4): MaskedLinear(in_features=64, out_features=6, bias=True)
             )
           )
           (base): UnconditionalDistribution(DiagNormal(loc: torch.Size([3]), scale: torch.Size([3])))
@@ -61,9 +55,13 @@ class CausalMAF(CausalFlow):
         >>> c = torch.randn(4)
         >>> x = flow(c).sample()
         >>> x
-        tensor([-2.3677, -0.0753, -0.9235])
+        tensor([-1.9301, -0.1411, -0.7982])
         >>> flow(c).log_prob(x)
-        tensor(-5.6385, grad_fn=<AddBackward0>)
+        tensor(-5.1800, grad_fn=<AddBackward0>)
+
+    References:
+        | Masked Autoregressive Flow for Density Estimation (Papamakarios et al., 2017)
+        | https://arxiv.org/abs/1705.07057
     """
 
     def __init__(
@@ -98,27 +96,27 @@ class CausalMAF(CausalFlow):
 
 
 class CausalNSF(CausalMAF):
-    r"""Creates a causal flow using a neural spline flow (NSF) with monotonic rational-quadratic spline
-    transformations as base model.
+    r"""Creates a causal flow using a neural spline flow (NSF) as the base model.
+
+    Arguments:
+        features: The number of features.
+        context: The number of context features.
+        bins: The number of bins :math:`K`.
+        kwargs: Keyword arguments passed to :class:`~causalflows.flows.CausalMAF`.
+
+    See also:
+        - :class:`~zuko.flows.spline.NSF` The equivalent non-causal counterpart from Zuko.
 
     Warning:
         Spline transformations are defined over the domain :math:`[-5, 5]`. Any feature
         outside of this domain is not transformed. It is recommended to standardize
         features (zero mean, unit variance) before training.
 
-    See also:
-        :class:`zuko.flows.spline.NSF`
-        :class:`zuko.transforms.CircularShiftTransform`
 
     References:
         | Neural Spline Flows (Durkan et al., 2019)
         | https://arxiv.org/abs/1906.04032
 
-    Arguments:
-        features: The number of features.
-        context: The number of context features.
-        bins: The number of bins :math:`K`.
-        kwargs: Keyword arguments passed to :class:`causalflows.CausalMAF`.
     """
 
     def __init__(
@@ -144,19 +142,18 @@ class CausalNCSF(CausalMAF):
     with regular spline transformations. Features are assumed to lie in the half-open
     interval :math:`[-\pi, \pi)`.
 
-    See also:
-        :class:`zuko.flows.spline.NSCF`
-        :class:`zuko.transforms.CircularShiftTransform`
-
-    References:
-        | Normalizing Flows on Tori and Spheres (Rezende et al., 2020)
-        | https://arxiv.org/abs/2002.02428
-
     Arguments:
         features: The number of features.
         context: The number of context features.
         bins: The number of bins :math:`K`.
-        kwargs: Keyword arguments passed to :class:`zuko.flows.autoregressive.MAF`.
+        kwargs: Keyword arguments passed to :class:`~zuko.flows.autoregressive.MAF`.
+
+    See also:
+        - :class:`~zuko.flows.spline.NCSF` The equivalent non-causal counterpart from Zuko.
+
+    References:
+        | Normalizing Flows on Tori and Spheres (Rezende et al., 2020)
+        | https://arxiv.org/abs/2002.02428
     """
 
     def __init__(
@@ -185,8 +182,17 @@ class CausalNCSF(CausalMAF):
 class CausalNAF(CausalFlow):
     r"""Creates a causal flow using a neural autoregressive flow (NAF) as base model.
 
+    Arguments:
+        features: The number of features.
+        context: The number of context features.
+        signal: The number of signal features of the monotonic network.
+        order: The causal order to follow by the flow. If used, then `adjacency` must be :py:`None`.
+        adjacency: The causal graph to follow by the flow. If used, then `order` must be :py:`None`.
+        network: Keyword arguments passed to :class:`~zuko.flows.neural.MNN`.
+        kwargs: Keyword arguments passed to :class:`~zuko.flows.autoregressive.MaskedAutoregressiveTransform`.
+
     See also:
-        :class:`zuko.flows.neural.NAF`
+        - :class:`~zuko.flows.neural.NAF` The equivalent non-causal counterpart from Zuko.
 
     Warning:
         Invertibility is only guaranteed for features within the interval :math:`[-10,
@@ -197,14 +203,6 @@ class CausalNAF(CausalFlow):
         | Neural Autoregressive Flows (Huang et al., 2018)
         | https://arxiv.org/abs/1804.00779
 
-    Arguments:
-        features: The number of features.
-        context: The number of context features.
-        signal: The number of signal features of the monotonic network.
-        order: The causal order to follow by the flow. If used, then `adjacency` must be :py:`None`.
-        adjacency: The causal graph to follow by the flow. If used, then `order` must be :py:`None`.
-        network: Keyword arguments passed to :class:`zuko.flows.neural.MNN`.
-        kwargs: Keyword arguments passed to :class:`zuko.flows.autoregressive.MaskedAutoregressiveTransform`.
     """
 
     def __init__(
@@ -248,8 +246,17 @@ class CausalNAF(CausalFlow):
 class CausalUNAF(CausalFlow):
     r"""Creates a causal flow using an unconstrained neural autoregressive flow (UNAF) as base model.
 
+    Arguments:
+        features: The number of features.
+        context: The number of context features.
+        signal: The number of signal features of the monotonic network.
+        order: The causal order to follow by the flow. If used, then `adjacency` must be :py:`None`.
+        adjacency: The causal graph to follow by the flow. If used, then `order` must be :py:`None`.
+        network: Keyword arguments passed to :class:`~zuko.flows.neural.UMNN`.
+        kwargs: Keyword arguments passed to :class:`~zuko.flows.autoregressive.MaskedAutoregressiveTransform`.
+
     See also:
-        :class:`zuko.flows.neural.UNAF`
+        - :class:`~zuko.flows.neural.UNAF` The equivalent non-causal counterpart from Zuko.
 
     Warning:
         Invertibility is only guaranteed for features within the interval :math:`[-10,
@@ -260,14 +267,6 @@ class CausalUNAF(CausalFlow):
         | Unconstrained Monotonic Neural Networks (Wehenkel et al., 2019)
         | https://arxiv.org/abs/1908.05164
 
-    Arguments:
-        features: The number of features.
-        context: The number of context features.
-        signal: The number of signal features of the monotonic network.
-        order: The causal order to follow by the flow. If used, then `adjacency` must be :py:`None`.
-        adjacency: The causal graph to follow by the flow. If used, then `order` must be :py:`None`.
-        network: Keyword arguments passed to :class:`zuko.flows.neural.UMNN`.
-        kwargs: Keyword arguments passed to :class:`zuko.flows.autoregressive.MaskedAutoregressiveTransform`.
     """
 
     def __init__(
