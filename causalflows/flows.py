@@ -14,7 +14,6 @@ from typing import (
 )
 from zuko.distributions import BoxUniform, DiagNormal
 from zuko.flows import (
-    LazyInverse,
     MaskedAutoregressiveTransform,
     UnconditionalDistribution,
 )
@@ -80,14 +79,12 @@ class CausalMAF(CausalFlow):
             adjacency is None
         ), "One of `order` or `adjacency` must be specified."
 
-        transform = LazyInverse(
-            MaskedAutoregressiveTransform(
-                features=features,
-                context=context,
-                order=order,
-                adjacency=adjacency,
-                **kwargs,
-            )
+        transform = MaskedAutoregressiveTransform(
+            features=features,
+            context=context,
+            order=order,
+            adjacency=adjacency,
+            **kwargs,
         )
 
         base = UnconditionalDistribution(
@@ -228,16 +225,14 @@ class CausalNAF(CausalFlow):
         if network is None:
             network = {}
 
-        transforms = LazyInverse(
-            MaskedAutoregressiveTransform(
-                features=features,
-                context=context,
-                order=order,
-                adjacency=adjacency,
-                univariate=MNN(signal=signal, stack=features, **network),
-                shapes=[Size((signal,))],
-                **kwargs,
-            )
+        transforms = MaskedAutoregressiveTransform(
+            features=features,
+            context=context,
+            order=order,
+            adjacency=adjacency,
+            univariate=MNN(signal=signal, stack=features, **network),
+            shapes=[Size((signal,))],
+            **kwargs,
         )
 
         base = UnconditionalDistribution(
@@ -293,16 +288,14 @@ class CausalUNAF(CausalFlow):
         if network is None:
             network = {}
 
-        transforms = LazyInverse(
-            MaskedAutoregressiveTransform(
-                features=features,
-                context=context,
-                order=order,
-                adjacency=adjacency,
-                univariate=UMNN(signal=signal, stack=features, **network),
-                shapes=[Size((signal,)), ()],
-                **kwargs,
-            )
+        transforms = MaskedAutoregressiveTransform(
+            features=features,
+            context=context,
+            order=order,
+            adjacency=adjacency,
+            univariate=UMNN(signal=signal, stack=features, **network),
+            shapes=[Size((signal,)), ()],
+            **kwargs,
         )
 
         base = UnconditionalDistribution(
