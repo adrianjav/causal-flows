@@ -28,9 +28,8 @@ class IntervenedTransform(Transform):
         x = self.transform.inv(u)
         x[..., index] = value.to(device=x.device)
         u_tmp = self.transform(x)
-        u_int = u.clone()  # Avoid aliasing
-        u_int[..., index] = u_tmp[..., index]
-        return self.transform.inv(u_int)
+        u_tmp[..., index + 1 :] = u[..., index + 1 :]
+        return self.transform.inv(u_tmp)
 
     def __getattr__(self, item):
         return self.transform.__getattribute__(item)
