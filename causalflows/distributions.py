@@ -20,7 +20,6 @@ class IntervenedTransform(Transform):
         self.index: List[LongTensor] = index
         self.value: List[Tensor] = value
 
-    # TODO For now nested interventions need to be given in order
     def _inv_call(self, u):
         index = torch.cat(self.index, dim=-1)
         value = torch.stack(self.value, dim=-1)
@@ -28,8 +27,8 @@ class IntervenedTransform(Transform):
         x = self.transform.inv(u)
         x[..., index] = value.to(device=x.device)
         u_tmp = self.transform(x)
-        u_tmp[..., index + 1 :] = u[..., index + 1 :]
-        return self.transform.inv(u_tmp)
+        u[..., index] = u_tmp[..., index]
+        return self.transform.inv(u)
 
     def __getattr__(self, item):
         return self.transform.__getattribute__(item)
