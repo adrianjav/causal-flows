@@ -12,11 +12,11 @@ of quality of life changes to improve its usability.
 To cite this library, please cite the original manuscript that preceded it:
 ```bibtex
 @article{javaloy2024causal,
-  title={Causal normalizing flows: from theory to practice},
-  author={Javaloy, Adri{\'a}n and S{\'a}nchez-Mart{\'\i}n, Pablo and Valera, Isabel},
-  journal={Advances in Neural Information Processing Systems},
-  volume={36},
-  year={2024}
+    title={Causal normalizing flows: from theory to practice},
+    author={Javaloy, Adri{\'a}n and S{\'a}nchez-Mart{\'\i}n, Pablo and Valera, Isabel},
+    journal={Advances in {Neural} {Information} {Processing} {Systems}},
+    volume={36},
+    year={2024}
 }
 ```
 
