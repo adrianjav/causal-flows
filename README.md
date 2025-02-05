@@ -3,7 +3,7 @@
 > [!warning]
 > This is work in progress. You can expect bugs (yet we do not know of any) and rough edges.
 
-CausalFlows is a Python package that implements causal normalizing flows in [PyTorch](https://pytorch.org>).
+CausalFlows is a Python package that implements [Causal Normalizing Flows](https://arxiv.org/abs/2306.05415) in [PyTorch](https://pytorch.org>).
 As of now, it is essentially a wrapper of the [Zuko](https://github.com/probabilists/zuko) library with a number
 of quality of life changes to improve its usability.
 
@@ -58,13 +58,27 @@ for x, c in trainset:
     loss.backward()
     optimizer.step()
 
-# Sample 64 points x ~ p(x | c*)
+# Sample 64 factual points x ~ p(x | c*)
 x = flow(c_star).sample((64,))
+
+# Intervene using the context manager (the context needs always to be given)
+with flow(c_star).intervene(index=1, value=2.5) as int_flow:
+    x_int = int_flow.sample((64,))
+
+# We could also sample with the helper method
+x_int = flow(c_star).sample_interventional(index=1, value=2.5, sample_shape=(64,))
+
+# And we can compute counterfactuals using the helper methods (or the context manager)
+x_cf = flow(c_star).compute_counterfactual(x, index=1, value=2.5)
 ```
 
 Alternatively, flows can be built as custom [CausalFlow](https://github.com/adrianjav/causal-flows/blob/189e7d6ea35a4000b2899a2c54ed4883c58ffed9/causalflows/core.py#L11) objects.
 As it can be appreciated in the snippet below, the library can be easily combined with custom flows
 from the [Zuko](https://github.com/probabilists/zuko) library.
+
+> [!warning]
+> Note that custom flows may not be causally consistent (i.e. they may have spurious correlations) if they are not
+> carefully designed (see [the original paper](https://arxiv.org/abs/2306.05415) for an explanation).
 
 ```python
 from causalflows.flows import CausalFlow
