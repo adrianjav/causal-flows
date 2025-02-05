@@ -7,6 +7,19 @@ CausalFlows is a Python package that implements causal normalizing flows in [PyT
 As of now, it is essentially a wrapper of the [Zuko](https://github.com/probabilists/zuko) library with a number
 of quality of life changes to improve its usability.
 
+## Citation
+
+To cite this library, please cite the original manuscript that preceded it:
+```bibtex
+@article{javaloy2024causal,
+  title={Causal normalizing flows: from theory to practice},
+  author={Javaloy, Adri{\'a}n and S{\'a}nchez-Mart{\'\i}n, Pablo and Valera, Isabel},
+  journal={Advances in Neural Information Processing Systems},
+  volume={36},
+  year={2024}
+}
+```
+
 ## Installation
 
 The package is still not publicly available, so you need to install it locally from the source folder
