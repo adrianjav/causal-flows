@@ -27,7 +27,7 @@ To cite this library, please cite the original manuscript that preceded it:
 Installation
 ------------
 
-The :mod:`causalflows` package is still not publicly available, so you need to install it locally from the source folder
+The :mod:`causalflows` package is still not publicly available on pip, so you need to install it locally from the source folder
 of this repository using
 
 .. code-block:: console

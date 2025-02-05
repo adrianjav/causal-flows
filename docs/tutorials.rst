@@ -5,5 +5,5 @@ Tutorials
     :maxdepth: 1
     :numbered:
 
-    tutorials/basics
+    tutorials/basics.rst
     tutorials/causal_flows
