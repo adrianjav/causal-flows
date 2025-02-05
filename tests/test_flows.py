@@ -4,6 +4,7 @@ import pytest
 import torch
 
 from causalflows.flows import *
+from math import pi
 from pathlib import Path
 from torch import randn
 
@@ -56,10 +57,12 @@ def test_flows(tmp_path: Path, F: callable):
         assert torch.allclose(x, z, atol=1e-4)
 
     # Saving
-    torch.save(flow, tmp_path / "flow.pth")
+    torch.save(flow.state_dict(), tmp_path / "flow.pt")
 
     # Loading
-    flow_bis = torch.load(tmp_path / "flow.pth")
+    flow_state_dict = torch.load(tmp_path / "flow.pt")
+    flow_bis = F(3, 5, order=(0, 1, 2))
+    flow_bis.load_state_dict(flow_state_dict)
 
     x, c = randn(3), randn(5)
     if F is CausalNCSF:

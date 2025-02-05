@@ -30,6 +30,12 @@ def test_interventions():
     assert nflow.sample((4,)).shape == (4, features)
 
     with nflow.intervene(1, 0.0):
+        x_int = nflow.sample((4,))
+        print(x_int)
+        assert x_int.shape == (4, features)
+        assert allclose(x_int[:, 1], 0.0)
+
+    with nflow.intervene(1, 0.0):
         with nflow.intervene(2, 1.0):
             x_int = nflow.sample((4,))
             print(x_int)
