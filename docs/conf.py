@@ -13,7 +13,7 @@ import subprocess
 package = 'causalflows'
 project = 'Causal Normalizing Flows'
 version = causalflows.__version__
-copyright = '2024'
+copyright = 'Adrián Javaloy 2025'
 repository = 'https://github.com/adrianjav/causal-flows'
 commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
 root = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], text=True).strip()
