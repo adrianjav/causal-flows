@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "causalflows"
 description = "Causal Normalizing flows in PyTorch"
 authors = [
-  {name = "Adrián Javaloy", email = "adrian.javaloy@uni-saarland.de"}
+  {name = "Adrián Javaloy", email = "ajavaloy@ed.ac.uk"}
 ]
 classifiers = [
   "Intended Audience :: Developers",
