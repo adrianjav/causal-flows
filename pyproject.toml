@@ -41,8 +41,7 @@ dev = [
 ]
 
 [project.urls]
-# TODO
-# documentation = "https://zuko.readthedocs.io"
+documentation = "https://causal-flows.readthedocs.io/"
 source = "https://github.com/adrianjav/causal-flows"
 tracker = "https://github.com/adrianjav/causal-flows/issues"
 
