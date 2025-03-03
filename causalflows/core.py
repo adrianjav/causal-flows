@@ -2,8 +2,6 @@ r"""Causal Normalizing Flow class."""
 
 __all__ = ['CausalFlow']
 
-from typing import Optional
-
 from torch import Tensor
 from zuko.flows import Flow
 
@@ -22,7 +20,7 @@ class CausalFlow(Flow):
         base: A lazy distribution.
     """
 
-    def forward(self, context: Optional[Tensor] = None) -> CausalNormalizingFlow:
+    def forward(self, context: Tensor | None = None) -> CausalNormalizingFlow:
         r"""
         Arguments:
             context: An input tensor representing the context of the (conditional) flow.
