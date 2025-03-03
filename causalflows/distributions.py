@@ -2,8 +2,9 @@ r"""Causal Normalizing Flow distribution."""
 
 __all__ = ['CausalNormalizingFlow']
 
+from collections.abc import Generator
 from contextlib import contextmanager
-from typing import List
+from typing import Any, Self
 
 import torch
 from torch import LongTensor, Size, Tensor
@@ -14,24 +15,24 @@ empty_size = Size()
 
 
 class IntervenedTransform(Transform):
-    def __init__(self, transform: Transform, index: List[LongTensor], value: List[Tensor]):
+    def __init__(self, transform: Transform, index: list[LongTensor], value: list[Tensor]) -> None:
         super().__init__()
         self.transform = transform
-        self.index: List[LongTensor] = index
-        self.value: List[Tensor] = value
+        self.index: tuple[LongTensor, ...] = tuple(index)  # must for torch.cat
+        self.value: list[Tensor] = value
 
-    def _inv_call(self, u):
+    def _inv_call(self, u: Tensor) -> Tensor:
         index = torch.cat(self.index, dim=-1)
         value = torch.stack(self.value, dim=-1)
 
-        x = self.transform.inv(u)
+        x: Tensor = self.transform.inv(u)
         x[..., index] = value.to(device=x.device)
-        u_tmp = self.transform(x)
+        u_tmp: Tensor = self.transform(x)
         u[..., index] = u_tmp[..., index]
         return self.transform.inv(u)
 
-    def __getattr__(self, item):
-        return self.transform.__getattribute__(item)
+    def __getattr__(self, name: str) -> Any:
+        return self.transform.__getattribute__(name)
 
 
 class CausalNormalizingFlow(NormalizingFlow):
@@ -66,16 +67,15 @@ class CausalNormalizingFlow(NormalizingFlow):
         self,
         transform: Transform,
         base: Distribution,
-    ):
+    ) -> None:
         super().__init__(transform, base)
+        self.transform = transform
         self.og_transform = transform
-        self.indexes: List[LongTensor] = []
-        self.values: List[Tensor] = []
+        self.indexes: list[LongTensor] = []
+        self.values: list[Tensor] = []
 
     @contextmanager
-    def intervene(
-        self, index: LongTensor, value: Tensor
-    ) -> NormalizingFlow:  # TODO CausalNormalizingFlow?
+    def intervene(self, index: LongTensor, value: Tensor) -> Generator[Self]:
         r"""
         Context manager that yields an interventional distribution.
 
@@ -106,9 +106,9 @@ class CausalNormalizingFlow(NormalizingFlow):
         finally:
             self._stop_intervention(index)
 
-    def _start_intervention(self, index: LongTensor, value: Tensor) -> NormalizingFlow:
+    def _start_intervention(self, index: LongTensor, value: Tensor) -> Self:
         if not torch.is_tensor(index):
-            index = torch.tensor(index).long().view(-1)
+            index = torch.tensor(index).long().view(-1)  # ????????
 
         if not torch.is_tensor(value):
             value = torch.tensor(value)
@@ -120,7 +120,7 @@ class CausalNormalizingFlow(NormalizingFlow):
 
         return self
 
-    def _stop_intervention(self, index: LongTensor) -> None:
+    def _stop_intervention(self, index: LongTensor) -> None:  # ????????
         self.indexes.pop()
         self.values.pop()
         if len(self.indexes) == 0:
@@ -181,7 +181,7 @@ class CausalNormalizingFlow(NormalizingFlow):
                     [ 0.5000, -0.8333],
                     [ 0.5000,  0.1809]])
         """
-        u = self.transform(factual)
+        u: Tensor = self.transform(factual)
 
         with self.intervene(index, value) as nflow:
             return nflow.transform.inv(u)
