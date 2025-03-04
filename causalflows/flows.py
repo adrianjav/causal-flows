@@ -3,11 +3,7 @@ r"""Wrappers for causal normalizing flows using standard architectures."""
 __all__ = ['CausalFlow', 'CausalMAF', 'CausalNAF', 'CausalNCSF', 'CausalNSF', 'CausalUNAF']
 
 from math import pi
-from typing import (
-    Any,
-    Dict,
-    Optional,
-)
+from typing import Any
 
 import torch
 from torch import BoolTensor, LongTensor, Size
@@ -69,11 +65,11 @@ class CausalMAF(CausalFlow):
         self,
         features: int,
         context: int = 0,
-        *args,
-        order: Optional[LongTensor] = None,
-        adjacency: Optional[BoolTensor] = None,
-        **kwargs,
-    ):
+        *_: Any,
+        order: LongTensor | None = None,
+        adjacency: BoolTensor | None = None,
+        **kwargs: Any,
+    ) -> None:
         assert (order is None) != (adjacency is None), (
             "One of `order` or `adjacency` must be specified."
         )
@@ -125,8 +121,8 @@ class CausalNSF(CausalMAF):
         features: int,
         context: int = 0,
         bins: int = 8,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         super().__init__(
             features=features,
             context=context,
@@ -162,8 +158,8 @@ class CausalNCSF(CausalMAF):
         features: int,
         context: int = 0,
         bins: int = 8,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         super().__init__(
             features=features,
             context=context,
@@ -211,12 +207,12 @@ class CausalNAF(CausalFlow):
         features: int,
         context: int = 0,
         signal: int = 16,
-        *args,
-        order: Optional[LongTensor] = None,
-        adjacency: Optional[BoolTensor] = None,
-        network: Optional[Dict[str, Any]] = None,
-        **kwargs,
-    ):
+        *_: Any,
+        order: LongTensor | None = None,
+        adjacency: BoolTensor | None = None,
+        network: dict[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> None:
         assert (order is None) != (adjacency is None), (
             "One of `order` or `adjacency` must be specified."
         )
@@ -275,12 +271,12 @@ class CausalUNAF(CausalFlow):
         features: int,
         context: int = 0,
         signal: int = 16,
-        *args,
-        order: Optional[LongTensor] = None,
-        adjacency: Optional[BoolTensor] = None,
-        network: Dict[str, Any] = None,
-        **kwargs,
-    ):
+        *_: Any,
+        order: LongTensor | None = None,
+        adjacency: BoolTensor | None = None,
+        network: dict[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> None:
         assert (order is None) != (adjacency is None), (
             "One of `order` or `adjacency` must be specified."
         )
@@ -294,7 +290,7 @@ class CausalUNAF(CausalFlow):
             order=order,
             adjacency=adjacency,
             univariate=UMNN(signal=signal, stack=features, **network),
-            shapes=[Size((signal,)), ()],
+            shapes=[Size((signal,)), Size()],
             **kwargs,
         )
 
