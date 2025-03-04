@@ -2,13 +2,12 @@ r"""Helper class to create synthetic SCMs and pre-defined instances of SCMs read
 
 from collections.abc import Callable, Sequence
 from math import sqrt
-from typing import Union, cast
+from typing import Self, cast
 
 import torch
 import torch.nn.functional as F
 from torch import BoolTensor, LongTensor, Tensor
 from torch.distributions import Distribution, Independent, Normal, Transform, Uniform, constraints
-from zuko.distributions import NormalizingFlow
 
 from .distributions import CausalNormalizingFlow
 
@@ -32,14 +31,14 @@ class CausalEquations(Transform):
         functions: Sequence[Tens2Ten | NTen2Ten],
         inverses: Sequence[Tens2Ten | NTen2Ten],
         derivatives: Sequence[Tens2Ten | NTen2Ten] | None = None,
-    ):
-        super(CausalEquations, self).__init__(cache_size=0)
+    ) -> None:
+        super().__init__(cache_size=0)
         # Must use force cast because they are incompatible
         self.functions: Sequence[Tens2Ten] = cast(Sequence[Tens2Ten], functions)
         self.inverses: Sequence[Tens2Ten] = cast(Sequence[Tens2Ten], inverses)
         self.derivatives: Sequence[Tens2Ten] | None = cast(Sequence[Tens2Ten] | None, derivatives)
 
-        self._interventions = dict()
+        self._interventions: dict[int, Tensor] = {}
 
     @property
     def adjacency(self) -> BoolTensor:
@@ -48,33 +47,31 @@ class CausalEquations(Transform):
     def _call(self, u: Tensor) -> Tensor:
         assert u.shape[1] == len(self.functions)
 
-        x = []
+        x: list[Tensor] = []
         for i, f in enumerate(self.functions):
             if i in self._interventions:
                 x_i = torch.ones_like(u[..., i]) * self._interventions[i]
             else:
                 x_i = f(*x[:i], u[..., i])
             x.append(x_i)
-        x = torch.stack(x, dim=1)
 
-        return x
+        return torch.stack(x, dim=1)
 
     def _inverse(self, x: Tensor) -> Tensor:
         assert x.shape[1] == len(self.inverses)
 
-        u = []
+        u: list[Tensor] = []
         for i, g in enumerate(self.inverses):
             u_i = g(*x[..., : i + 1].unbind(dim=-1))
             u.append(u_i)
-        u = torch.stack(u, dim=1)
 
-        return u
+        return torch.stack(u, dim=1)
 
     def log_abs_det_jacobian(self, u: Tensor, x: Tensor) -> Tensor:
         if self.derivatives is None:
             return self._log_abs_det_jacobian_autodiff(u, x)
 
-        logdetjac = []
+        logdetjac: list[Tensor] = []
         for i, g in enumerate(self.derivatives):
             grad_i = g(*x[..., : i + 1].unbind(dim=-1))
             logdetjac.append(torch.log(grad_i.abs()))
@@ -82,7 +79,7 @@ class CausalEquations(Transform):
         return -torch.stack(logdetjac, dim=-1)
 
     def _log_abs_det_jacobian_autodiff(self, u: Tensor, x: Tensor) -> Tensor:
-        logdetjac = []
+        logdetjac: list[Tensor] = []
         old_requires_grad = x.requires_grad
         x.requires_grad_(True)
         for i, g in enumerate(self.inverses):  # u = T(x)
@@ -92,7 +89,7 @@ class CausalEquations(Transform):
         x.requires_grad_(old_requires_grad)
         return -torch.stack(logdetjac, dim=-1)
 
-    def add_intervention(self, index, value) -> None:
+    def add_intervention(self, index: int, value: Tensor) -> None:
         self._interventions[index] = value
 
     def remove_intervention(self, index: int) -> None:
@@ -100,8 +97,8 @@ class CausalEquations(Transform):
 
 
 class SCM(CausalNormalizingFlow):
-    def __init__(self, equations: CausalEquations, base: Union[str, Distribution]):
-        if type(base) is str:
+    def __init__(self, equations: CausalEquations, base: str | Distribution) -> None:
+        if isinstance(base, str):
             features = equations.adjacency.shape[0]
             if base == 'std-gaussian':
                 base = Independent(
@@ -125,12 +122,12 @@ class SCM(CausalNormalizingFlow):
         assert (adj.shape[0] == adj.shape[1]) and (len(adj.shape) == 2)
         return adj
 
-    def _start_intervention(self, index: LongTensor, value: Tensor) -> NormalizingFlow:
-        self.equations.add_intervention(index, value)
+    def _start_intervention(self, index: LongTensor, value: Tensor) -> Self:
+        self.equations.add_intervention(index, value)  # ??????????
         return self
 
     def _stop_intervention(self, index: LongTensor) -> None:
-        self.equations.remove_intervention(index)
+        self.equations.remove_intervention(index)  # ??????????
 
 
 ####
@@ -139,7 +136,7 @@ class SCM(CausalNormalizingFlow):
 
 
 class Triangle(CausalEquations):
-    def __init__(self, eq_type: str):
+    def __init__(self, eq_type: str) -> None:
         if eq_type == "linear":
             functions: list[NTen2Ten] = [
                 lambda u1: u1 + 1.0,
@@ -189,7 +186,7 @@ class Triangle(CausalEquations):
 
 
 class Simpson(CausalEquations):
-    def __init__(self, eq_type: str):
+    def __init__(self, eq_type: str) -> None:
         s = torch.nn.functional.softplus
 
         if eq_type == "non-linear":
@@ -233,7 +230,7 @@ class Simpson(CausalEquations):
                 (1, 1, 1, 0),
                 (0, 0, 1, 1),
             ))
-        elif self.eq_type == "sym-prod":
+        if self.eq_type == "sym-prod":
             return BoolTensor((
                 (1, 0, 0, 0),
                 (1, 1, 0, 0),
@@ -245,21 +242,21 @@ class Simpson(CausalEquations):
 
 
 class LargeBackdoor(CausalEquations):
-    def __init__(self, eq_type: str):
-        def inv_softplus(bias):
+    def __init__(self, eq_type: str) -> None:
+        def inv_softplus(bias: Tensor) -> Tensor:
             return bias.expm1().clamp_min(1e-6).log()
 
-        def layer(x, y):
+        def layer(x: Tensor, y: Tensor) -> Tensor:
             return F.softplus(x + 1) + F.softplus(0.5 + y) - 3.0
 
-        def inv_layer(x, z):
+        def inv_layer(x: Tensor, z: Tensor) -> Tensor:
             return inv_softplus(z + 3 - F.softplus(x + 1)) - 0.5
 
-        def icdf_laplace(loc, scale, value):
+        def icdf_laplace(loc: Tensor, scale: Tensor | float, value: Tensor) -> Tensor:
             term = value - 0.5
             return loc - scale * term.sign() * torch.log1p(-2 * term.abs())
 
-        def cdf_laplace(loc, scale, value):
+        def cdf_laplace(loc: Tensor, scale: Tensor | float, value: Tensor) -> Tensor:
             return 0.5 - 0.5 * (value - loc).sign() * torch.expm1(-(value - loc).abs() / scale)
 
         if eq_type == "non-linear":
@@ -313,7 +310,7 @@ class LargeBackdoor(CausalEquations):
 
 
 class Fork(CausalEquations):
-    def __init__(self, eq_type: str):
+    def __init__(self, eq_type: str) -> None:
         if eq_type == "linear":
             functions: list[NTen2Ten] = [
                 lambda u1: u1,
@@ -357,7 +354,7 @@ class Fork(CausalEquations):
 
 
 class Diamond(CausalEquations):
-    def __init__(self, eq_type: str):
+    def __init__(self, eq_type: str) -> None:
         if eq_type == "non-linear":
             functions: list[NTen2Ten] = [
                 lambda u1: u1,
@@ -388,7 +385,7 @@ class Diamond(CausalEquations):
 
 
 class Collider(CausalEquations):
-    def __init__(self, eq_type: str):
+    def __init__(self, eq_type: str) -> None:
         if eq_type == "linear":
             functions: list[NTen2Ten] = [
                 lambda u1: u1,
@@ -416,7 +413,7 @@ class Collider(CausalEquations):
 
 
 class Chain3(CausalEquations):
-    def __init__(self, eq_type: str):
+    def __init__(self, eq_type: str) -> None:
         if eq_type == "linear":
             functions: list[NTen2Ten] = [
                 lambda u1: u1,
@@ -477,7 +474,7 @@ class Chain3(CausalEquations):
 
 
 class Chain4(CausalEquations):
-    def __init__(self, eq_type: str):
+    def __init__(self, eq_type: str) -> None:
         if eq_type == "linear":
             functions: list[NTen2Ten] = [
                 lambda u1: u1,
@@ -508,7 +505,7 @@ class Chain4(CausalEquations):
 
 
 class Chain5(CausalEquations):
-    def __init__(self, eq_type: str):
+    def __init__(self, eq_type: str) -> None:
         if eq_type == "linear":
             functions: list[NTen2Ten] = [
                 lambda u1: u1,
