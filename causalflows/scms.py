@@ -164,12 +164,12 @@ class Triangle(CausalEquations):
         super().__init__(functions, inverses)
 
     @property
-    def adjacency(self):
-        return torch.tensor((
+    def adjacency(self) -> BoolTensor:
+        return BoolTensor((
             (1, 0, 0),
             (1, 1, 0),
             (1, 1, 1),
-        )).bool()
+        ))
 
 
 class Simpson(CausalEquations):
@@ -209,21 +209,21 @@ class Simpson(CausalEquations):
         super().__init__(functions, inverses)
 
     @property
-    def adjacency(self):
-        if self.eq_type == 'non-linear':
-            return torch.tensor((
+    def adjacency(self) -> BoolTensor:
+        if self.eq_type == "non-linear":
+            return BoolTensor((
                 (1, 0, 0, 0),
                 (1, 1, 0, 0),
                 (1, 1, 1, 0),
                 (0, 0, 1, 1),
-            )).bool()
-        elif self.eq_type == 'sym-prod':
-            return torch.tensor((
+            ))
+        elif self.eq_type == "sym-prod":
+            return BoolTensor((
                 (1, 0, 0, 0),
                 (1, 1, 0, 0),
                 (1, 1, 1, 0),
                 (1, 0, 0, 1),
-            )).bool()
+            ))
 
         raise ValueError(f'Equation type {self.eq_type} not supported.')
 
@@ -281,8 +281,8 @@ class LargeBackdoor(CausalEquations):
         super().__init__(functions, inverses)
 
     @property
-    def adjacency(self):
-        return torch.tensor([
+    def adjacency(self) -> BoolTensor:
+        return BoolTensor((
             (1, 0, 0, 0, 0, 0, 0, 0, 0),
             (1, 1, 0, 0, 0, 0, 0, 0, 0),
             (1, 0, 1, 0, 0, 0, 0, 0, 0),
@@ -292,7 +292,7 @@ class LargeBackdoor(CausalEquations):
             (0, 0, 0, 0, 1, 0, 1, 0, 0),
             (0, 0, 0, 0, 0, 1, 0, 1, 0),
             (0, 0, 0, 0, 0, 0, 1, 1, 1),
-        ]).bool()
+        ))
 
 
 class Fork(CausalEquations):
@@ -330,13 +330,13 @@ class Fork(CausalEquations):
         super().__init__(functions, inverses)
 
     @property
-    def adjacency(self):
-        return torch.tensor((
+    def adjacency(self) -> BoolTensor:
+        return BoolTensor((
             (1, 0, 0, 0),
             (0, 1, 0, 0),
             (1, 1, 1, 0),
             (0, 0, 1, 1),
-        )).bool()
+        ))
 
 
 class Diamond(CausalEquations):
@@ -361,13 +361,13 @@ class Diamond(CausalEquations):
         super().__init__(functions, inverses)
 
     @property
-    def adjacency(self):
-        return torch.tensor((
+    def adjacency(self) -> BoolTensor:
+        return BoolTensor((
             (1, 0, 0, 0),
             (1, 1, 0, 0),
             (1, 1, 1, 0),
             (0, 1, 1, 1),
-        )).bool()
+        ))
 
 
 class Collider(CausalEquations):
@@ -390,12 +390,12 @@ class Collider(CausalEquations):
         super().__init__(functions, inverses)
 
     @property
-    def adjacency(self):
-        return torch.tensor((
+    def adjacency(self) -> BoolTensor:
+        return BoolTensor((
             (1, 0, 0),
             (0, 1, 0),
             (1, 1, 1),
-        )).bool()
+        ))
 
 
 class Chain3(CausalEquations):
@@ -451,12 +451,12 @@ class Chain3(CausalEquations):
         super().__init__(functions, inverses)
 
     @property
-    def adjacency(self):
-        return torch.tensor((
+    def adjacency(self) -> BoolTensor:
+        return BoolTensor((
             (1, 0, 0),
             (1, 1, 0),
             (0, 1, 1),
-        )).bool()
+        ))
 
 
 class Chain4(CausalEquations):
@@ -481,13 +481,13 @@ class Chain4(CausalEquations):
         super().__init__(functions, inverses)
 
     @property
-    def adjacency(self):
-        return torch.tensor((
+    def adjacency(self) -> BoolTensor:
+        return BoolTensor((
             (1, 0, 0, 0),
             (1, 1, 0, 0),
             (0, 1, 1, 0),
             (0, 0, 1, 1),
-        )).bool()
+        ))
 
 
 class Chain5(CausalEquations):
@@ -514,11 +514,11 @@ class Chain5(CausalEquations):
         super().__init__(functions, inverses)
 
     @property
-    def adjacency(self):
-        return torch.tensor((
+    def adjacency(self) -> BoolTensor:
+        return BoolTensor((
             (1, 0, 0, 0, 0),
             (1, 1, 0, 0, 0),
             (0, 1, 1, 0, 0),
             (0, 0, 1, 1, 0),
             (0, 0, 0, 1, 1),
-        )).bool()
+        ))
