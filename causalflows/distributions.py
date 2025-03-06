@@ -4,7 +4,7 @@ __all__ = ['CausalNormalizingFlow']
 
 from collections.abc import Generator
 from contextlib import contextmanager
-from typing import Any, Self
+from typing import Any, Self, cast
 
 import torch
 from torch import LongTensor, Size, Tensor
@@ -18,17 +18,16 @@ class IntervenedTransform(Transform):
     def __init__(self, transform: Transform, index: list[LongTensor], value: list[Tensor]) -> None:
         super().__init__()
         self.transform = transform
-        self.index: tuple[LongTensor, ...] = tuple(index)  # must for torch.cat
-        self.value: list[Tensor] = value
+        self.index = cast(
+            LongTensor, torch.cat(tuple(index), dim=-1)
+        )  # tuple is must for torch.cat typing
+        self.value = torch.stack(value, dim=-1)
 
     def _inv_call(self, u: Tensor) -> Tensor:
-        index = torch.cat(self.index, dim=-1)
-        value = torch.stack(self.value, dim=-1)
-
         x: Tensor = self.transform.inv(u)
-        x[..., index] = value.to(device=x.device)
+        x[..., self.index] = self.value.to(device=x.device)
         u_tmp: Tensor = self.transform(x)
-        u[..., index] = u_tmp[..., index]
+        u[..., self.index] = u_tmp[..., self.index]
         return self.transform.inv(u)
 
     def __getattr__(self, name: str) -> Any:
