@@ -6,7 +6,7 @@ from typing import Self, cast
 
 import torch
 import torch.nn.functional as F
-from torch import BoolTensor, LongTensor, Tensor
+from torch import BoolTensor, Tensor
 from torch.distributions import Distribution, Independent, Normal, Transform, Uniform, constraints
 
 from .distributions import CausalNormalizingFlow
@@ -122,12 +122,12 @@ class SCM(CausalNormalizingFlow):
         assert (adj.shape[0] == adj.shape[1]) and (len(adj.shape) == 2)
         return adj
 
-    def _start_intervention(self, index: LongTensor, value: Tensor) -> Self:
-        self.equations.add_intervention(index, value)  # ??????????
+    def _start_intervention(self, index: int, value: Tensor | float | Sequence[float]) -> Self:
+        self.equations.add_intervention(index, torch.as_tensor(value))
         return self
 
-    def _stop_intervention(self, index: LongTensor) -> None:
-        self.equations.remove_intervention(index)  # ??????????
+    def _stop_intervention(self, index: int) -> None:
+        self.equations.remove_intervention(index)
 
 
 ####

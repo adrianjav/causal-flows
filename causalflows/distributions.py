@@ -2,7 +2,7 @@ r"""Causal Normalizing Flow distribution."""
 
 __all__ = ['CausalNormalizingFlow']
 
-from collections.abc import Generator
+from collections.abc import Generator, Sequence
 from contextlib import contextmanager
 from typing import Any, Self, cast
 
@@ -74,7 +74,9 @@ class CausalNormalizingFlow(NormalizingFlow):
         self.values: list[Tensor] = []
 
     @contextmanager
-    def intervene(self, index: LongTensor, value: Tensor) -> Generator[Self]:
+    def intervene(
+        self, index: LongTensor | int | Sequence[int], value: Tensor | float | Sequence[float]
+    ) -> Generator[Self]:
         r"""
         Context manager that yields an interventional distribution.
 
@@ -105,12 +107,11 @@ class CausalNormalizingFlow(NormalizingFlow):
         finally:
             self._stop_intervention(index)
 
-    def _start_intervention(self, index: LongTensor, value: Tensor) -> Self:
-        if not torch.is_tensor(index):
-            index = torch.tensor(index).long().view(-1)  # ????????
-
-        if not torch.is_tensor(value):
-            value = torch.tensor(value)
+    def _start_intervention(
+        self, index: LongTensor | int | Sequence[int], value: Tensor | float | Sequence[float]
+    ) -> Self:
+        index = cast(LongTensor, torch.as_tensor(index).view(-1))
+        value = torch.as_tensor(value)
 
         self.indexes.append(index)
         self.values.append(value)
@@ -119,14 +120,19 @@ class CausalNormalizingFlow(NormalizingFlow):
 
         return self
 
-    def _stop_intervention(self, index: LongTensor) -> None:  # ????????
+    def _stop_intervention(
+        self, index: LongTensor | int | Sequence[int]
+    ) -> None:  # index unused here but may be used in subclass
         self.indexes.pop()
         self.values.pop()
         if len(self.indexes) == 0:
             self.transform = self.og_transform
 
     def sample_interventional(
-        self, index: LongTensor, value: Tensor, sample_shape: Size = empty_size
+        self,
+        index: LongTensor | int | Sequence[int],
+        value: Tensor | float | Sequence[float],
+        sample_shape: Size = empty_size,
     ) -> Tensor:
         r"""
         Helper method to sample from an interventional distribution.
@@ -153,8 +159,8 @@ class CausalNormalizingFlow(NormalizingFlow):
     def compute_counterfactual(
         self,
         factual: Tensor,
-        index: LongTensor,
-        value: Tensor,
+        index: LongTensor | int | Sequence[int],
+        value: Tensor | float | Sequence[float],
     ) -> Tensor:
         r"""
         Helper method to sample from a counterfactual distribution.
