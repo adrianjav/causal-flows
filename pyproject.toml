@@ -33,7 +33,7 @@ dependencies = [
 ]
 
 
-[dependency-groups]
+[project.optional-dependencies]
 dev = [
   "pre-commit",
   "pytest",
