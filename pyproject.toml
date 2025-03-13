@@ -60,8 +60,6 @@ preview = true
 "*.ipynb" = ["B007"]
 
 [tool.ruff.lint.isort]
-lines-between-types = 1
-no-sections = true
 relative-imports-order = "closest-to-furthest"
 
 [tool.ruff.format]

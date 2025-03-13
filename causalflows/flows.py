@@ -2,16 +2,15 @@ r"""Wrappers for causal normalizing flows using standard architectures."""
 
 __all__ = ['CausalFlow', 'CausalMAF', 'CausalNAF', 'CausalNCSF', 'CausalNSF', 'CausalUNAF']
 
-import torch
-
-from .core import CausalFlow
 from math import pi
-from torch import BoolTensor, LongTensor, Size
 from typing import (
     Any,
     Dict,
     Optional,
 )
+
+import torch
+from torch import BoolTensor, LongTensor, Size
 from zuko.distributions import BoxUniform, DiagNormal
 from zuko.flows import (
     MaskedAutoregressiveTransform,
@@ -20,6 +19,8 @@ from zuko.flows import (
 from zuko.flows.neural import MNN, UMNN
 from zuko.flows.spline import CircularRQSTransform
 from zuko.transforms import MonotonicRQSTransform
+
+from .core import CausalFlow
 
 
 class CausalMAF(CausalFlow):
@@ -73,9 +74,9 @@ class CausalMAF(CausalFlow):
         adjacency: Optional[BoolTensor] = None,
         **kwargs,
     ):
-        assert (order is None) != (
-            adjacency is None
-        ), "One of `order` or `adjacency` must be specified."
+        assert (order is None) != (adjacency is None), (
+            "One of `order` or `adjacency` must be specified."
+        )
 
         transform = MaskedAutoregressiveTransform(
             features=features,
@@ -216,9 +217,9 @@ class CausalNAF(CausalFlow):
         network: Optional[Dict[str, Any]] = None,
         **kwargs,
     ):
-        assert (order is None) != (
-            adjacency is None
-        ), "One of `order` or `adjacency` must be specified."
+        assert (order is None) != (adjacency is None), (
+            "One of `order` or `adjacency` must be specified."
+        )
 
         if network is None:
             network = {}
@@ -280,9 +281,9 @@ class CausalUNAF(CausalFlow):
         network: Dict[str, Any] = None,
         **kwargs,
     ):
-        assert (order is None) != (
-            adjacency is None
-        ), "One of `order` or `adjacency` must be specified."
+        assert (order is None) != (adjacency is None), (
+            "One of `order` or `adjacency` must be specified."
+        )
 
         if network is None:
             network = {}

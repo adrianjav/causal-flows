@@ -2,12 +2,12 @@ r"""Causal Normalizing Flow distribution."""
 
 __all__ = ['CausalNormalizingFlow']
 
-import torch
-
 from contextlib import contextmanager
+from typing import List
+
+import torch
 from torch import LongTensor, Size, Tensor
 from torch.distributions import Distribution, Transform
-from typing import List
 from zuko.distributions import NormalizingFlow
 
 empty_size = Size()

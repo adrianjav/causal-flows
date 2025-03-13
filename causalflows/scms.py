@@ -1,14 +1,15 @@
 r"""Helper class to create synthetic SCMs and pre-defined instances of SCMs ready to use."""
 
+from math import sqrt
+from typing import Union
+
 import torch
 import torch.nn.functional as F
-
-from .distributions import CausalNormalizingFlow
-from math import sqrt
 from torch import BoolTensor, LongTensor, Tensor
 from torch.distributions import Distribution, Independent, Normal, Transform, Uniform, constraints
-from typing import Union
 from zuko.distributions import NormalizingFlow
+
+from .distributions import CausalNormalizingFlow
 
 
 class CausalEquations(Transform):

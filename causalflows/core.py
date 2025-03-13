@@ -2,10 +2,12 @@ r"""Causal Normalizing Flow class."""
 
 __all__ = ['CausalFlow']
 
-from .distributions import CausalNormalizingFlow
-from torch import Tensor
 from typing import Optional
+
+from torch import Tensor
 from zuko.flows import Flow
+
+from .distributions import CausalNormalizingFlow
 
 
 class CausalFlow(Flow):

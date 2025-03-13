@@ -1,12 +1,13 @@
 # Configuration file for the Sphinx documentation builder
 
-import causalflows
 import glob
 import importlib
 import inspect
 import pathlib
 import re
 import subprocess
+
+import causalflows
 
 ## Project
 
