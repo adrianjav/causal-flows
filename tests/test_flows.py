@@ -1,12 +1,13 @@
 r"""Tests for the zuko.flows module."""
 
-import pytest
-import torch
-
-from causalflows.flows import *
 from math import pi
 from pathlib import Path
+
+import pytest
+import torch
 from torch import randn
+
+from causalflows.flows import *
 
 
 # @pytest.mark.parametrize("F", [CausalMAF, CausalNSF, CausalNAF, CausalUNAF, CausalNCSF])

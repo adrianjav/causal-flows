@@ -1,11 +1,11 @@
 r"""Doctests configuration."""
 
-import causalflows
 import pytest
 import torch
 import zuko
-
 from torch.distributions import ExpTransform, Gamma
+
+import causalflows
 
 
 @pytest.fixture(autouse=True, scope="module")
