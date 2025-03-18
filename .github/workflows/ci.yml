@@ -36,7 +36,7 @@ jobs:
         run: uv sync --all-extras --dev
 
       - name: Run tests
-        run: pytest tests
+        run: uv run pytest tests
 
   doctest:
     runs-on: ubuntu-latest
@@ -55,4 +55,4 @@ jobs:
         run: uv sync --all-extras --dev
 
       - name: Run doctests
-        run: pytest causalflows --doctest-modules
+        run: uv run pytest causalflows --doctest-modules
