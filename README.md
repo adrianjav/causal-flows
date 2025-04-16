@@ -22,13 +22,18 @@ To cite this library, please cite the original manuscript that preceded it:
 
 ## Installation
 
-The package is still not publicly available, so you need to install it locally from the source folder
-of this repository using
+You can install `causalflows` from pip by simply running
 
 ```bash
-pip install -e .
+pip install causalflows
 ```
-Alternatively, you can install it directly from the repository.
+
+Or, if you are using `uv`, you can add it to your project with
+```bash
+uv add causalflows
+```
+
+Alternatively, you can install it directly from the repository:
 
 ```bash
 pip install git+https://github.com/adrianjav/causal-flows
