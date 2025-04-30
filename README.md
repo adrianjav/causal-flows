@@ -1,8 +1,5 @@
 # Causal Normalizing Flows
 
-> [!warning]
-> This is work in progress. You can expect bugs (yet we do not know of any) and rough edges.
-
 CausalFlows is a Python package that implements [Causal Normalizing Flows](https://arxiv.org/abs/2306.05415) in [PyTorch](https://pytorch.org>).
 As of now, it is essentially a wrapper of the [Zuko](https://github.com/probabilists/zuko) library with a number
 of quality of life changes to improve its usability.
